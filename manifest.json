@@ -1,0 +1,16 @@
+{
+  "name": "Controle de Estacionamento",
+  "short_name": "Estacionamento",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme-color": "#2c3e50",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2983/2983777.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

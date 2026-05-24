@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estacionamento</title>
+    <!-- Link para o arquivo de configuração do App -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+    
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --background: #f5f6fa;
+            --dark: #1e272e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--dark);
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--primary);
+        }
+
+        .card h3 {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .card p {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .parking-lot {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .grid-vagas {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .vaga {
+            height: 90px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: #fff;
+        }
+
+        .vaga:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+        .vaga.ocupada {
+            border-style: solid;
+            border-color: var(--danger);
+            background-color: #fce4e4;
+        }
+
+        .vaga.livre {
+            border-style: solid;
+            border-color: var(--success);
+            background-color: #e8f8f5;
+        }
+
+        .vaga-numero {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .vaga-status {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .vaga.ocupada .vaga-status { color: var(--danger); }
+        .vaga.livre .vaga-status { color: var(--success); }
+
+        .vaga-placa {
+            font-size: 0.8rem;
+            background: #dfe6e9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .panel-control {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        .panel-control h2 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: white;
+        }
+
+        .btn-entry { background-color: var(--success); }
+        .btn-entry:hover { background-color: #27ae60; }
+        .btn-checkout { background-color: var(--danger); margin-top: 10px; }
+        .btn-checkout:hover { background-color: #c0392b; }
+
+        .info-checkout {
+            background: #fff9db;
+            border: 1px solid #ffe066;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .info-checkout p {
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Controle de Estacionamento</h1>
+        <p>Tarifa: R$ 7,00 por hora</p>
+    </header>
+
+    <div class="dashboard">
+        <div class="card">
+            <h3>Vagas Totais</h3>
+            <p>30</p>
+        </div>
+        <div class="card">
+            <h3>Disponíveis</h3>
+            <span id="vagas-disponiveis" style="font-size: 1.8rem; font-weight: bold; color: var(--success);">30</span>
+        </div>
+        <div class="card">
+            <h3>Ocupadas</h3>
+            <span id="vagas-ocupadas" style="font-size: 1.8rem; font-weight: bold; color: var(--danger);">0</span>
+        </div>
+        <div class="card" style="border-top-color: #f1c40f;">
+            <h3>Caixa do Dia</h3>
+            <p style="color: #f39c12;">R$ <span id="faturamento-total">0,00</span></p>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="parking-lot">
+            <h2>Mapa do Estacionamento</h2>
+            <div class="grid-vagas" id="grid-vagas"></div>
+        </div>
+
+        <div class="panel-control">
+            <div id="area-entrada">
+                <h2>Registrar Entrada</h2>
+                <div class="form-group">
+                    <label for="vaga-select">Selecione a Vaga:</label>
+                    <select id="vaga-select"></select>
+                </div>
+                <div class="form-group">
+                    <label for="placa-input">Placa do Veículo:</label>
+                    <input type="text" id="placa-input" placeholder="ABC-1234" maxlength="8" style="text-transform: uppercase;">
+                </div>
+                <button class="btn-entry" onclick="registrarEntrada()">Confirmar Entrada</button>
+            </div>
+
+            <div id="area-saida" class="hidden">
+                <h2>Registrar Saída</h2>
+                <div class="info-checkout">
+                    <p><strong>Vaga:</strong> <span id="out-vaga">-</span></p>
+                    <p><strong>Placa:</strong> <span id="out-placa">-</span></p>
+                    <p><strong>Entrada:</strong> <span id="out-hora-entrada">-</span></p>
+                    <p><strong>Tempo Decorrido:</strong> <span id="out-tempo">-</span></p>
+                    <p style="font-size: 1.2rem; margin-top: 10px; color: var(--danger);">
+                        <strong>Total a Pagar:</strong> R$ <span id="out-total">0,00</span>
+                    </p>
+                </div>
+                <button class="btn-entry" onclick="confirmarSaida()">Confirmar Pagamento</button>
+                <button class="btn-checkout" onclick="cancelarSaida()" style="background-color: #7f8c8d;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Registro do Service Worker para o PWA funcionar offline
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+            .then(() => console.log("Service Worker ativo!"))
+            .catch(err => console.log("Erro no Service Worker:", err));
+        }
+
+        const TOTAL_VAGAS = 30;
+        const VALOR_HORA = 7.00;
+        
+        let vagas = [];
+        let faturamento = 0.0;
+        let vagaSelecionadaParaSaida = null;
+
+        function inicializarEstacionamento() {
+            // Tenta recuperar dados salvos no celular
+            const vagasSalvas = localStorage.getItem('estacionamento_vagas');
+            const faturamentoSalvo = localStorage.getItem('estacionamento_faturamento');
+
+            if (vagasSalvas) {
+                vagas = JSON.parse(vagasSalvas);
+                // Converte as strings de data de volta para objetos Date
+                vagas.forEach(v => {
+                    if(v.horaEntrada) v.horaEntrada = new Date(v.horaEntrada);
+                });
+            } else {
+                for (let i = 1; i <= TOTAL_VAGAS; i++) {
+                    vagas.push({ numero: i, ocupada: false, placa: '', horaEntrada: null });
+                }
+            }
+
+            if (faturamentoSalvo) {
+                faturamento = parseFloat(faturamentoSalvo);
+            }
+
+            atualizarInterface();
+        }
+
+        function salvarDadosLocais() {
+            localStorage.setItem('estacionamento_vagas', JSON.stringify(vagas));
+            localStorage.setItem('estacionamento_faturamento', faturamento.toString());
+        }
+
+        function atualizarInterface() {
+            const grid = document.getElementById('grid-vagas');
+            const select = document.getElementById('vaga-select');
+            
+            grid.innerHTML = '';
+            select.innerHTML = '<option value="">Escolha uma vaga...</option>';
+            let ocupadas = 0;
+
+            vagas.forEach(vaga => {
+                const divVaga = document.createElement('div');
+                divVaga.className = `vaga ${vaga.ocupada ? 'ocupada' : 'livre'}`;
+                divVaga.onclick = () => clicarVaga(vaga.numero);
+
+                divVaga.innerHTML = `
+                    <div class="vaga-numero">#${vaga.numero}</div>
+                    ${vaga.ocupada ? `<div class="vaga-placa">${vaga.placa}</div>` : ''}
+                    <div class="vaga-status">${vaga.ocupada ? 'Ocupada' : 'Livre'}</div>
+                `;
+                grid.appendChild(divVaga);
+
+                if (!vaga.ocupada) {
+                    const option = document.createElement('option');
+                    option.value = vaga.numero;
+                    option.textContent = `Vaga nº ${vaga.numero}`;
+                    select.appendChild(option);
+                } else {
+                    ocupadas++;
+                }
+            });
+
+            document.getElementById('vagas-ocupadas').textContent = ocupadas;
+            document.getElementById('vagas-disponiveis').textContent = TOTAL_VAGAS - ocupadas;
+            document.getElementById('faturamento-total').textContent = faturamento.toFixed(2).replace('.', ',');
+        }
+
+        function registrarEntrada() {
+            const numVaga = parseInt(document.getElementById('vaga-select').value);
+            const placa = document.getElementById('placa-input').value.trim().toUpperCase();
+
+            if (!numVaga || !placa) {
+                alert('Preencha a vaga e a placa!');
+                return;
+            }
+
+            const vaga = vagas.find(v => v.numero === numVaga);
+            vaga.ocupada = true;
+            vaga.placa = placa;
+            vaga.horaEntrada = new Date();
+
+            document.getElementById('vaga-select').value = '';
+            document.getElementById('placa-input').value = '';
+
+            salvarDadosLocais();
+            atualizarInterface();
+        }
+
+        function clicarVaga(numero) {
+            const vaga = vagas.find(v => v.numero === numero);
+            
+            if (!vaga.ocupada) {
+                document.getElementById('vaga-select').value = numero;
+                cancelarSaida();
+                return;
+            }
+
+            vagaSelecionadaParaSaida = vaga;
+            const agora = new Date();
+            const diferencaMilissegundos = agora - vaga.horaEntrada;
+            
+            const minutosTotais = Math.max(1, Math.floor(diferencaMilissegundos / 1000 / 60));
+            const horasParaCobrar = Math.ceil(minutosTotais / 60);
+            const valorTotal = horasParaCobrar * VALOR_HORA;
+
+            let tempoTexto = minutosTotais < 60 ? `${minutosTotais} min` : `${Math.floor(minutosTotais / 60)}h e ${minutosTotais % 60}m`;
+
+            document.getElementById('out-vaga').textContent = vaga.numero;
+            document.getElementById('out-placa').textContent = vaga.placa;
+            document.getElementById('out-hora-entrada').textContent = vaga.horaEntrada.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('out-tempo').textContent = tempoTexto;
+            document.getElementById('out-total').textContent = valorTotal.toFixed(2).replace('.', ',');
+
+            document.getElementById('area-entrada').classList.add('hidden');
+            document.getElementById('area-saida').classList.remove('hidden');
+        }
+
+        function confirmarSaida() {
+            if (!vagaSelecionadaParaSaida) return;
+
+            const agora = new Date();
+            const diferencaMilissegundos = agora - vagaSelecionadaParaSaida.horaEntrada;
+            const minutosTotais = Math.max(1, Math.floor(diferencaMilissegundos / 1000 / 60));
+            const horasParaCobrar = Math.ceil(minutosTotais / 60);
+            
+            faturamento += (horasParaCobrar * VALOR_HORA);
+
+            vagaSelecionadaParaSaida.ocupada = false;
+            vagaSelecionadaParaSaida.placa = '';
+            vagaSelecionadaParaSaida.horaEntrada = null;
+            
+            salvarDadosLocais();
+            cancelarSaida();
+            atualizarInterface();
+        }
+
+        function cancelarSaida() {
+            vagaSelecionadaParaSaida = null;
+            document.getElementById('area-entrada').classList.remove('hidden');
+            document.getElementById('area-saida').classList.add('hidden');
+        }
+
+        window.onload = inicializarEstacionamento;
+    </script>
+</body>
+</html>
